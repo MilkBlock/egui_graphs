@@ -18,17 +18,10 @@ pub use helpers::{
     generate_simple_ungraph, node_size, to_graph, to_graph_custom,
 };
 
-pub use layouts::force_directed::{
-    CenterGravity, CenterGravityParams, Extra, ForceAlgorithm,
-    ForceDirected as LayoutForceDirected, FruchtermanReingold, FruchtermanReingoldState,
-    FruchtermanReingoldWithCenterGravity, FruchtermanReingoldWithCenterGravityState,
-    FruchtermanReingoldWithExtras, FruchtermanReingoldWithExtrasState,
-};
 pub use layouts::hierarchical::{
     Hierarchical as LayoutHierarchical, Orientation as LayoutHierarchicalOrientation,
     State as LayoutStateHierarchical,
 };
-pub use layouts::random::{Random as LayoutRandom, State as LayoutStateRandom};
 pub use layouts::{Layout, LayoutState};
 pub use metadata::Metadata;
 pub use settings::{SettingsInteraction, SettingsNavigation, SettingsStyle};

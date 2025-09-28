@@ -152,8 +152,8 @@ pub type DefaultGraphView<'a> = GraphView<
     DefaultIx,
     DefaultNodeShape,
     DefaultEdgeShape,
-    layouts::random::State,
-    layouts::random::Random,
+    layouts::hierarchical::State,
+    layouts::hierarchical::Hierarchical,
 >;
 
 #[cfg(feature = "events")]
@@ -200,8 +200,8 @@ pub struct GraphView<
     Ix = DefaultIx,
     Nd = DefaultNodeShape,
     Ed = DefaultEdgeShape,
-    S = layouts::random::State,
-    L = layouts::random::Random,
+    S = layouts::hierarchical::State,
+    L = layouts::hierarchical::Hierarchical,
 > where
     N: Clone,
     E: Clone,

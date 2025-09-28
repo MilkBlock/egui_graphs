@@ -12,9 +12,10 @@ use crate::{DefaultNodeShape, DisplayNode};
 
 /// Stores properties of a [Node]
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct NodeProps<N>
+pub struct NodeProps<N, Ix>
 where
     N: Clone,
+    Ix: IndexType,
 {
     pub payload: N,
     pub label: String,
@@ -24,11 +25,17 @@ where
 
     color: Option<Color32>,
     location: Pos2,
+
+    // Hierarchical layout fields
+    parent: Option<NodeIndex<Ix>>,
+    children: Vec<NodeIndex<Ix>>,
+    level: usize,
 }
 
-impl<N> NodeProps<N>
+impl<N, Ix> NodeProps<N>
 where
     N: Clone,
+    Ix: IndexType,
 {
     pub fn location(&self) -> Pos2 {
         self.location
@@ -36,6 +43,38 @@ where
 
     pub fn color(&self) -> Option<Color32> {
         self.color
+    }
+
+    pub fn parent(&self) -> Option<NodeIndex<Ix>> {
+        self.parent
+    }
+
+    pub fn set_parent(&mut self, parent: Option<NodeIndex<Ix>>) {
+        self.parent = parent;
+    }
+
+    pub fn children(&self) -> &[NodeIndex<Ix>] {
+        &self.children
+    }
+
+    pub fn children_mut(&mut self) -> &mut Vec<NodeIndex<Ix>> {
+        &mut self.children
+    }
+
+    pub fn add_child(&mut self, child: NodeIndex<Ix>) {
+        self.children.push(child);
+    }
+
+    pub fn level(&self) -> usize {
+        self.level
+    }
+
+    pub fn set_level(&mut self, level: usize) {
+        self.level = level;
+    }
+
+    pub fn is_hierarchical(&self) -> bool {
+        !self.children.is_empty()
     }
 }
 
@@ -50,7 +89,7 @@ where
 {
     id: Option<NodeIndex<Ix>>,
 
-    props: NodeProps<N>,
+    props: NodeProps<N, Ix>,
     display: D,
 
     _marker: PhantomData<(E, Ty)>,
@@ -107,6 +146,9 @@ where
             selected: bool::default(),
             dragged: bool::default(),
             hovered: bool::default(),
+            parent: None,
+            children: Vec::new(),
+            level: 0,
         };
 
         Node::new_with_props(props)
@@ -167,6 +209,38 @@ where
 
     pub fn set_location(&mut self, loc: Pos2) {
         self.props.location = loc;
+    }
+
+    pub fn parent(&self) -> Option<NodeIndex<Ix>> {
+        self.props.parent()
+    }
+
+    pub fn set_parent(&mut self, parent: Option<NodeIndex<Ix>>) {
+        self.props.set_parent(parent);
+    }
+
+    pub fn children(&self) -> &[NodeIndex<Ix>] {
+        self.props.children()
+    }
+
+    pub fn children_mut(&mut self) -> &mut Vec<NodeIndex<Ix>> {
+        self.props.children_mut()
+    }
+
+    pub fn add_child(&mut self, child: NodeIndex<Ix>) {
+        self.props.add_child(child);
+    }
+
+    pub fn level(&self) -> usize {
+        self.props.level()
+    }
+
+    pub fn set_level(&mut self, level: usize) {
+        self.props.set_level(level);
+    }
+
+    pub fn is_hierarchical(&self) -> bool {
+        self.props.is_hierarchical()
     }
 
     pub fn selected(&self) -> bool {

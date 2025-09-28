@@ -3,7 +3,7 @@ use std::collections::HashSet;
 use egui::Pos2;
 use petgraph::{
     csr::IndexType,
-    stable_graph::NodeIndex,
+    stable_graph::{DefaultIx, NodeIndex},
     Direction::{Incoming, Outgoing},
     EdgeType,
 };
@@ -58,7 +58,7 @@ pub struct Hierarchical {
 }
 
 impl Layout<State> for Hierarchical {
-    fn next<N, E, Ty, Ix, Dn, De>(&mut self, g: &mut Graph<N, E, Ty, Ix, Dn, De>, _: &egui::Ui)
+    fn next<N, E, Ty, Ix, Dn, De>(&mut self, g: &mut Graph, _: &egui::Ui)
     where
         N: Clone,
         E: Clone,
@@ -76,7 +76,7 @@ impl Layout<State> for Hierarchical {
         // Place forests starting from all roots (no incoming edges), packing them left-to-right
         // without overlap by advancing the next starting column by the width of each subtree.
         let mut next_col: usize = 0;
-        let roots: Vec<NodeIndex<Ix>> = g.g().externals(Incoming).collect();
+        let roots: Vec<_> = g.g().externals(Incoming).collect();
         for root in &roots {
             if visited.contains(root) {
                 continue;
@@ -86,7 +86,7 @@ impl Layout<State> for Hierarchical {
         }
 
         // Fallback: if the graph has cycles or no formal roots, lay out any remaining components.
-        let all_nodes: Vec<NodeIndex<Ix>> = g.g().node_indices().collect();
+        let all_nodes: Vec<_> = g.g().node_indices().collect();
         for n in &all_nodes {
             if visited.contains(n) {
                 continue;
@@ -108,9 +108,9 @@ impl Layout<State> for Hierarchical {
 }
 
 fn build_tree<N, E, Ty, Ix, Dn, De>(
-    g: &mut Graph<N, E, Ty, Ix, Dn, De>,
-    visited: &mut HashSet<NodeIndex<Ix>>,
-    root_idx: &NodeIndex<Ix>,
+    g: &mut Graph,
+    visited: &mut HashSet<NodeIndex<DefaultIx>>,
+    root_idx: &NodeIndex<DefaultIx>,
     state: &State,
     start_row: usize,
     start_col: usize,
@@ -133,7 +133,7 @@ where
     let mut max_col = start_col;
     let mut child_col = start_col;
 
-    let children: Vec<NodeIndex<Ix>> = g.g().neighbors_directed(*root_idx, Outgoing).collect();
+    let children: Vec<_> = g.g().neighbors_directed(*root_idx, Outgoing).collect();
 
     for neighbour_idx in children.iter() {
         if visited.contains(neighbour_idx) {
