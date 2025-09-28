@@ -2,12 +2,12 @@ use std::marker::PhantomData;
 
 use egui::{Context, Painter, Shape};
 use petgraph::graph::IndexType;
-use petgraph::EdgeType;
+use petgraph::{stable_graph::DefaultIx, Directed, EdgeType};
 
 use crate::{
     layouts::{Layout, LayoutState},
     settings::SettingsStyle,
-    Graph, Metadata,
+    Graph, Metadata, DefaultNodeShape, DefaultEdgeShape,
 };
 
 use super::{DisplayEdge, DisplayNode};
@@ -21,36 +21,28 @@ pub struct DrawContext<'a> {
     pub meta: &'a Metadata,
 }
 
-pub(crate) struct Drawer<'a, N, E, Ty, Ix, Nd, Ed, S, L>
+pub(crate) struct Drawer<'a, Nd, Ed, S, L>
 where
-    N: Clone,
-    E: Clone,
-    Ty: EdgeType,
-    Ix: IndexType,
-    Nd: DisplayNode<N, E, Ty, Ix>,
-    Ed: DisplayEdge<N, E, Ty, Ix, Nd>,
+    Nd: DisplayNode<(), (), Directed, DefaultIx>,
+    Ed: DisplayEdge<(), (), Directed, DefaultIx, Nd>,
     S: LayoutState,
     L: Layout<S>,
 {
     ctx: &'a DrawContext<'a>,
-    g: &'a mut Graph<N, E, Ty, Ix, Nd, Ed>,
+    g: &'a mut Graph,
     delayed: Vec<Shape>,
 
     _marker: PhantomData<(Nd, Ed, L, S)>,
 }
 
-impl<'a, N, E, Ty, Ix, Nd, Ed, S, L> Drawer<'a, N, E, Ty, Ix, Nd, Ed, S, L>
+impl<'a, Nd, Ed, S, L> Drawer<'a, Nd, Ed, S, L>
 where
-    N: Clone,
-    E: Clone,
-    Ty: EdgeType,
-    Ix: IndexType,
-    Nd: DisplayNode<N, E, Ty, Ix>,
-    Ed: DisplayEdge<N, E, Ty, Ix, Nd>,
+    Nd: DisplayNode<(), (), Directed, DefaultIx>,
+    Ed: DisplayEdge<(), (), Directed, DefaultIx, Nd>,
     S: LayoutState,
     L: Layout<S>,
 {
-    pub fn new(g: &'a mut Graph<N, E, Ty, Ix, Nd, Ed>, ctx: &'a DrawContext<'a>) -> Self {
+    pub fn new(g: &'a mut Graph, ctx: &'a DrawContext<'a>) -> Self {
         Drawer {
             ctx,
             g,
@@ -152,3 +144,6 @@ where
             });
     }
 }
+
+// Concrete type alias for the specialized graph
+pub(crate) type ConcreteDrawer<'a, S, L> = Drawer<'a, DefaultNodeShape, DefaultEdgeShape, S, L>;

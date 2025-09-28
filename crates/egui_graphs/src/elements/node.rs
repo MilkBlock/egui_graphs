@@ -32,7 +32,7 @@ where
     level: usize,
 }
 
-impl<N, Ix> NodeProps<N>
+impl<N, Ix> NodeProps<N, Ix>
 where
     N: Clone,
     Ix: IndexType,
@@ -155,7 +155,7 @@ where
     }
 
     /// Creates a new node with custom properties
-    pub fn new_with_props(props: NodeProps<N>) -> Self {
+    pub fn new_with_props(props: NodeProps<N, Ix>) -> Self {
         let display = D::from(props.clone());
         Self {
             props,
@@ -166,7 +166,7 @@ where
         }
     }
 
-    pub fn props(&self) -> &NodeProps<N> {
+    pub fn props(&self) -> &NodeProps<N, Ix> {
         &self.props
     }
 

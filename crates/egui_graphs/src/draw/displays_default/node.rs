@@ -2,7 +2,7 @@ use egui::{
     epaint::{CircleShape, TextShape},
     Color32, FontFamily, FontId, Pos2, Shape, Stroke, Vec2,
 };
-use petgraph::{stable_graph::IndexType, EdgeType};
+use petgraph::{Directed, stable_graph::{DefaultIx, IndexType}, EdgeType};
 
 use crate::{draw::drawer::DrawContext, DisplayNode, NodeProps};
 
@@ -24,8 +24,8 @@ pub struct DefaultNodeShape {
     pub radius: f32,
 }
 
-impl<N: Clone> From<NodeProps<N>> for DefaultNodeShape {
-    fn from(node_props: NodeProps<N>) -> Self {
+impl<N: Clone, Ix: IndexType> From<NodeProps<N, Ix>> for DefaultNodeShape {
+    fn from(node_props: NodeProps<N, Ix>) -> Self {
         DefaultNodeShape {
             pos: node_props.location(),
             selected: node_props.selected,
@@ -39,8 +39,7 @@ impl<N: Clone> From<NodeProps<N>> for DefaultNodeShape {
     }
 }
 
-impl<N: Clone, E: Clone, Ty: EdgeType, Ix: IndexType> DisplayNode<N, E, Ty, Ix>
-    for DefaultNodeShape
+impl DisplayNode<(), (), Directed, DefaultIx> for DefaultNodeShape
 {
     fn is_inside(&self, pos: Pos2) -> bool {
         is_inside_circle(self.pos, self.radius, pos)
@@ -81,7 +80,7 @@ impl<N: Clone, E: Clone, Ty: EdgeType, Ix: IndexType> DisplayNode<N, E, Ty, Ix>
         res
     }
 
-    fn update(&mut self, state: &NodeProps<N>) {
+    fn update(&mut self, state: &NodeProps<(), DefaultIx>) {
         self.pos = state.location();
         self.selected = state.selected;
         self.dragged = state.dragged;

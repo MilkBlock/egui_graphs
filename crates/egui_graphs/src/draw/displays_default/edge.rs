@@ -4,9 +4,9 @@ use egui::{
     epaint::{CubicBezierShape, TextShape},
     Color32, FontFamily, FontId, Pos2, Shape, Stroke, Vec2,
 };
-use petgraph::{stable_graph::IndexType, EdgeType};
+use petgraph::{Directed, stable_graph::{DefaultIx, IndexType}, EdgeType};
 
-use crate::{draw::DrawContext, elements::EdgeProps, node_size, DisplayEdge, DisplayNode, Node};
+use crate::{draw::DrawContext, elements::EdgeProps, node_size, DisplayEdge, DisplayNode, Node, DefaultNodeShape};
 
 use super::edge_shape_builder::{EdgeShapeBuilder, TipProps};
 
@@ -39,13 +39,12 @@ impl<E: Clone> From<EdgeProps<E>> for DefaultEdgeShape {
     }
 }
 
-impl<N: Clone, E: Clone, Ty: EdgeType, Ix: IndexType, D: DisplayNode<N, E, Ty, Ix>>
-    DisplayEdge<N, E, Ty, Ix, D> for DefaultEdgeShape
+impl DisplayEdge<(), (), Directed, DefaultIx, DefaultNodeShape> for DefaultEdgeShape
 {
     fn is_inside(
         &self,
-        start: &Node<N, E, Ty, Ix, D>,
-        end: &Node<N, E, Ty, Ix, D>,
+        start: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
+        end: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
         pos: egui::Pos2,
     ) -> bool {
         if start.id() == end.id() {
@@ -61,8 +60,8 @@ impl<N: Clone, E: Clone, Ty: EdgeType, Ix: IndexType, D: DisplayNode<N, E, Ty, I
 
     fn shapes(
         &mut self,
-        start: &Node<N, E, Ty, Ix, D>,
-        end: &Node<N, E, Ty, Ix, D>,
+        start: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
+        end: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
         ctx: &DrawContext,
     ) -> Vec<egui::Shape> {
         let label_visible = ctx.style.labels_always || self.selected;
@@ -80,7 +79,7 @@ impl<N: Clone, E: Clone, Ty: EdgeType, Ix: IndexType, D: DisplayNode<N, E, Ty, I
         self.curved_shapes(start, end, ctx, dir)
     }
 
-    fn update(&mut self, state: &EdgeProps<E>) {
+    fn update(&mut self, state: &EdgeProps<()>) {
         self.order = state.order;
         self.selected = state.selected;
         self.label_text = state.label.to_string();
@@ -88,8 +87,8 @@ impl<N: Clone, E: Clone, Ty: EdgeType, Ix: IndexType, D: DisplayNode<N, E, Ty, I
 
     fn extra_bounds(
         &self,
-        start: &Node<N, E, Ty, Ix, D>,
-        end: &Node<N, E, Ty, Ix, D>,
+        start: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
+        end: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
     ) -> Option<(Pos2, Pos2)> {
         use crate::helpers::node_size;
         // self-loop: approximate loop rectangle
@@ -126,9 +125,9 @@ impl<N: Clone, E: Clone, Ty: EdgeType, Ix: IndexType, D: DisplayNode<N, E, Ty, I
             let cp_center = center_point + height;
             // replicate control points logic approximately
             // avoid division by zero in pathological cases
-            let denom = param * dist * 0.5;
+            let denom = param * dist.length() * 0.5;
             let mut adjust = Vec2::ZERO;
-            if denom.x != 0.0 && denom.y != 0.0 {
+            if denom != 0.0 {
                 adjust = dir_n * self.curve_size / denom;
             }
             let cp_start = cp_center - adjust;
@@ -169,15 +168,9 @@ impl DefaultEdgeShape {
         }
     }
 
-    fn loop_shapes<
-        N: Clone,
-        E: Clone,
-        Ty: EdgeType,
-        Ix: IndexType,
-        D: DisplayNode<N, E, Ty, Ix>,
-    >(
+    fn loop_shapes(
         &mut self,
-        start: &Node<N, E, Ty, Ix, D>,
+        start: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
         ctx: &DrawContext,
         stroke: Stroke,
         color: Color32,
@@ -208,16 +201,10 @@ impl DefaultEdgeShape {
         res
     }
 
-    fn straight_shapes<
-        N: Clone,
-        E: Clone,
-        Ty: EdgeType,
-        Ix: IndexType,
-        D: DisplayNode<N, E, Ty, Ix>,
-    >(
+    fn straight_shapes(
         &mut self,
-        start: &Node<N, E, Ty, Ix, D>,
-        end: &Node<N, E, Ty, Ix, D>,
+        start: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
+        end: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
         ctx: &DrawContext,
         dir: Vec2,
     ) -> Vec<Shape> {
@@ -260,16 +247,10 @@ impl DefaultEdgeShape {
         res
     }
 
-    fn curved_shapes<
-        N: Clone,
-        E: Clone,
-        Ty: EdgeType,
-        Ix: IndexType,
-        D: DisplayNode<N, E, Ty, Ix>,
-    >(
+    fn curved_shapes(
         &mut self,
-        start: &Node<N, E, Ty, Ix, D>,
-        end: &Node<N, E, Ty, Ix, D>,
+        start: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
+        end: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
         ctx: &DrawContext,
         dir: Vec2,
     ) -> Vec<Shape> {
@@ -344,15 +325,9 @@ impl DefaultEdgeShape {
         *flattened.get(flattened.len() / 2).unwrap()
     }
 
-    fn is_inside_loop<
-        E: Clone,
-        N: Clone,
-        Ix: IndexType,
-        Ty: EdgeType,
-        D: DisplayNode<N, E, Ty, Ix>,
-    >(
+    fn is_inside_loop(
         &self,
-        node: &Node<N, E, Ty, Ix, D>,
+        node: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
         pos: Pos2,
     ) -> bool {
         let node_size = node_size(node, Vec2::new(-1., 0.));
@@ -368,31 +343,19 @@ impl DefaultEdgeShape {
         }
     }
 
-    fn is_inside_line<
-        E: Clone,
-        N: Clone,
-        Ix: IndexType,
-        Ty: EdgeType,
-        D: DisplayNode<N, E, Ty, Ix>,
-    >(
+    fn is_inside_line(
         &self,
-        start: &Node<N, E, Ty, Ix, D>,
-        end: &Node<N, E, Ty, Ix, D>,
+        start: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
+        end: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
         pos: Pos2,
     ) -> bool {
         distance_segment_to_point(start.location(), end.location(), pos) <= self.width
     }
 
-    fn is_inside_curve<
-        N: Clone,
-        E: Clone,
-        Ty: EdgeType,
-        Ix: IndexType,
-        D: DisplayNode<N, E, Ty, Ix>,
-    >(
+    fn is_inside_curve(
         &self,
-        node_start: &Node<N, E, Ty, Ix, D>,
-        node_end: &Node<N, E, Ty, Ix, D>,
+        node_start: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
+        node_end: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
         pos: Pos2,
     ) -> bool {
         let dir = (node_end.location() - node_start.location()).normalized();

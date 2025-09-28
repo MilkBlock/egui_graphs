@@ -335,7 +335,7 @@ impl Graph {
         self.g.is_directed()
     }
 
-    pub fn edges_num(&self, idx: NodeIndex<Ix>) -> usize {
+    pub fn edges_num(&self, idx: NodeIndex<DefaultIx>) -> usize {
         self.g.edges(idx).count()
     }
 

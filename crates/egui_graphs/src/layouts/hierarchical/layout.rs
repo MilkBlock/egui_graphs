@@ -11,7 +11,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     layouts::{Layout, LayoutState},
-    DisplayEdge, DisplayNode, Graph,
+    DefaultEdgeShape, DefaultNodeShape, DisplayEdge, DisplayNode, Graph,
 };
 
 /// Orientation of the hierarchical layout.
@@ -58,15 +58,7 @@ pub struct Hierarchical {
 }
 
 impl Layout<State> for Hierarchical {
-    fn next<N, E, Ty, Ix, Dn, De>(&mut self, g: &mut Graph, _: &egui::Ui)
-    where
-        N: Clone,
-        E: Clone,
-        Ty: EdgeType,
-        Ix: IndexType,
-        Dn: DisplayNode<N, E, Ty, Ix>,
-        De: DisplayEdge<N, E, Ty, Ix, Dn>,
-    {
+    fn next(&mut self, g: &mut Graph, _: &egui::Ui) {
         if self.state.triggered {
             return;
         }
@@ -107,7 +99,7 @@ impl Layout<State> for Hierarchical {
     }
 }
 
-fn build_tree<N, E, Ty, Ix, Dn, De>(
+fn build_tree(
     g: &mut Graph,
     visited: &mut HashSet<NodeIndex<DefaultIx>>,
     root_idx: &NodeIndex<DefaultIx>,
@@ -115,13 +107,6 @@ fn build_tree<N, E, Ty, Ix, Dn, De>(
     start_row: usize,
     start_col: usize,
 ) -> usize
-where
-    N: Clone,
-    E: Clone,
-    Ty: EdgeType,
-    Ix: IndexType,
-    Dn: DisplayNode<N, E, Ty, Ix>,
-    De: DisplayEdge<N, E, Ty, Ix, Dn>,
 {
     // Mark current node as visited to avoid re-entrancy via back-edges/cycles.
     if !visited.contains(root_idx) {

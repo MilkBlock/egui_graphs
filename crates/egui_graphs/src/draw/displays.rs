@@ -3,7 +3,7 @@ use petgraph::{stable_graph::IndexType, EdgeType};
 
 use crate::{draw::drawer::DrawContext, elements::EdgeProps, Node, NodeProps};
 
-pub trait DisplayNode<N, E, Ty, Ix>: Clone + From<NodeProps<N>>
+pub trait DisplayNode<N, E, Ty, Ix>: Clone + From<NodeProps<N, Ix>>
 where
     N: Clone,
     E: Clone,
@@ -27,7 +27,7 @@ where
     fn shapes(&mut self, ctx: &DrawContext) -> Vec<Shape>;
 
     /// Is called on every frame. Can be used for updating state of the implementation of [`DisplayNode`]
-    fn update(&mut self, state: &NodeProps<N>);
+    fn update(&mut self, state: &NodeProps<N, Ix>);
 
     /// Checks if the provided `pos` is inside the shape.
     ///

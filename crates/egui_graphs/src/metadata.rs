@@ -1,8 +1,8 @@
 use egui::{Id, Pos2, Rect, Vec2};
-use petgraph::{stable_graph::IndexType, EdgeType};
+use petgraph::{stable_graph::{DefaultIx, IndexType}, Directed, EdgeType};
 use serde::{Deserialize, Serialize};
 
-use crate::{node_size, DisplayNode, Node};
+use crate::{node_size, DisplayNode, Node, DefaultNodeShape};
 
 const KEY: &str = "egui_graphs_metadata";
 
@@ -22,15 +22,9 @@ impl Default for Bounds {
 }
 
 impl Bounds {
-    pub fn compute_next<
-        N: Clone,
-        E: Clone,
-        Ty: EdgeType,
-        Ix: IndexType,
-        D: DisplayNode<N, E, Ty, Ix>,
-    >(
+    pub fn compute_next(
         &mut self,
-        n: &Node<N, E, Ty, Ix, D>,
+        n: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
     ) {
         let size = node_size(n, Vec2::new(0., 1.));
         let loc = n.location();
@@ -108,15 +102,9 @@ impl Metadata {
         ((pos.to_vec2() - self.pan) / self.zoom).to_pos2()
     }
 
-    pub fn process_bounds<
-        N: Clone,
-        E: Clone,
-        Ty: EdgeType,
-        Ix: IndexType,
-        D: DisplayNode<N, E, Ty, Ix>,
-    >(
+    pub fn process_bounds(
         &mut self,
-        n: &Node<N, E, Ty, Ix, D>,
+        n: &Node<(), (), Directed, DefaultIx, DefaultNodeShape>,
     ) {
         self.bounds.compute_next(n);
     }
